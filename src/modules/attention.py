@@ -3,18 +3,32 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense
 
 
-def _scaled_dot_product_attention(query, key, value):
+def _scaled_dot_product_attention(query, key, value, mask):
     """
     스케일링 기능을 추가한 닷 프로덕트 어텐션 함수
 
     :param query: 쿼리 행렬
     :param key: 키 행렬
     :param value: 값 행렬
+    :param mask: 마스킹 행렬
     :return: softmax(QK^T / √d_k)V
     """
     key_t = np.transpose(key)
     d_k = key_t.shape[0]
-    return np.matmul(tf.nn.softmax((np.matmul(query, key_t)) / np.sqrt(d_k)), value)
+    attention_score_mat = np.matmul(query, key_t) / np.sqrt(d_k)
+    if mask is not None:
+        attention_score_mat += mask * -1e9
+    return np.matmul(tf.nn.softmax(attention_score_mat), value)
+
+
+def _create_pad_mask(inputs):
+    """
+    패딩 마스크 생성.
+    입력 벡터에 패딩 토큰이 있을 경우(값이 0) 해당 위치를 1로 표기
+    :param inputs: 입력 벡터
+    :return: 패딩 마스크
+    """
+    return np.where(inputs == 0, 1, 0)
 
 
 def _split_matrix(matrix, num_heads, size_per_head, batch_size):
