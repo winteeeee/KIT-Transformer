@@ -21,7 +21,7 @@ def _scaled_dot_product_attention(query, key, value, mask):
     return np.matmul(tf.nn.softmax(attention_score_mat), value)
 
 
-def _create_pad_mask(inputs):
+def create_pad_mask(inputs):
     """
     패딩 마스크 생성.
     입력 벡터에 패딩 토큰이 있을 경우(값이 0) 해당 위치를 1로 표기
@@ -49,7 +49,7 @@ def _split_matrix(matrix, num_heads, size_per_head, batch_size):
     return tf.transpose(matrix, perm=[0, 2, 1, 3])
 
 
-def multi_head_attention(query, key, value, d_model, num_heads):
+def multi_head_attention(query, key, value, d_model, num_heads, mask=None):
     """
     멀티-헤드 어텐션 수행
 
@@ -58,6 +58,7 @@ def multi_head_attention(query, key, value, d_model, num_heads):
     :param value: 값 행렬
     :param d_model: 모델의 하이퍼파라미터
     :param num_heads: 병렬 연산 수
+    :param mask: 스케일드 닷-프로덕트 어텐션 수행 시 마스크 적용 여부 결정(기본값 None)
     :return: 멀티-헤드 어텐션 적용 행렬
     """
     size_per_head = d_model // num_heads
@@ -72,7 +73,7 @@ def multi_head_attention(query, key, value, d_model, num_heads):
     key = _split_matrix(matrix=w_k(key), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
     value = _split_matrix(matrix=w_v(value), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
 
-    attention = _scaled_dot_product_attention(query=query, key=key, value=value)
+    attention = _scaled_dot_product_attention(query=query, key=key, value=value, mask=mask)
     # (batch_size, num_heads, seq_len, size_per_head) -> (batch_size, seq_len, num_head, size_per_head)
     # 어텐션 때문에 바꿔두었던 차원 정상화
     attention = tf.transpose(attention, perm=[0, 2, 1, 3])

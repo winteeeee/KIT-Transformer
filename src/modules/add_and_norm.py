@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import LayerNormalization
+from tensorflow.keras.layers import LayerNormalization, Dropout
 
 
 def _residual_connect(inputs, outputs):
@@ -25,12 +25,14 @@ def _layer_normalize(layer, epsilon=1e-6):
     return LayerNormalization(epsilon=epsilon)(layer)
 
 
-def add_and_norm(inputs, outputs):
+def add_and_norm(inputs, outputs, dropout):
     """
     트랜스포머의 Add & Norm층 구현
 
     :param inputs: 하위층 입력
     :param outputs: 하위층 출력
+    :param dropout: Add & Norm 적용전 수행할 Dropout의 Rate
     :return: Add & Norm 적용 결과
     """
+    outputs = Dropout(rate=dropout)(outputs)
     return _layer_normalize(_residual_connect(inputs, outputs))
