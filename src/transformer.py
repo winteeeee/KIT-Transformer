@@ -4,6 +4,7 @@ from modules.embedding import embedding
 from modules.positional_encoder import positional_encoding
 
 import tensorflow as tf
+from tensorflow.keras.layers import Dense
 
 
 class Transformer(tf.keras.Model):
@@ -29,11 +30,26 @@ class Transformer(tf.keras.Model):
         self.decoder = Decoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
 
     def call(self, inputs):
-        inputs = embedding(inputs=inputs, vocab_size=self.vocab_size, d_model=self.d_model)
-        inputs = positional_encoding(inputs=inputs,
-                                     vocab_size=self.vocab_size,
-                                     d_model=self.d_model,
-                                     dropout=self.dropout)
+        encoder_inputs, decoder_inputs = inputs
+        encoder_inputs = embedding(inputs=encoder_inputs, vocab_size=self.vocab_size, d_model=self.d_model)
+        encoder_inputs = positional_encoding(inputs=encoder_inputs,
+                                             vocab_size=self.vocab_size,
+                                             d_model=self.d_model,
+                                             dropout=self.dropout)
 
-        for i in range(self.num_layers):
-            inputs = self.encoder.encode(inputs)
+        encoder_outputs = self.encoder.encode(inputs=encoder_inputs)
+        for i in range(self.num_layers - 1):
+            encoder_outputs = self.encoder.encode(inputs=encoder_outputs)
+
+        decoder_inputs = embedding(inputs=decoder_inputs, vocab_size=self.vocab_size, d_model=self.d_model)
+        decoder_inputs = positional_encoding(inputs=decoder_inputs,
+                                             vocab_size=self.vocab_size,
+                                             d_model=self.d_model,
+                                             dropout=self.dropout)
+
+        decoder_outputs = self.decoder.decode(inputs=decoder_inputs, encoder_outputs=encoder_outputs)
+        for i in range(self.num_layers - 1):
+            decoder_outputs = self.decoder.decode(inputs=decoder_outputs, encoder_outputs=encoder_outputs)
+
+        outputs = Dense(units=self.vocab_size)(decoder_outputs)
+        return tf.nn.softmax(outputs)
