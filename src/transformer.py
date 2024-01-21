@@ -1,7 +1,7 @@
 from modules.encoder import Encoder
+from modules.decoder import Decoder
 from modules.embedding import embedding
 from modules.positional_encoder import positional_encoding
-from decoder import Decoder
 
 import tensorflow as tf
 
@@ -17,6 +17,7 @@ class Transformer(tf.keras.Model):
         :param d_ff: 내부 피드 포워드 신경망의 은닉층 크기. 기본값 2048
         """
         super(Transformer, self).__init__()
+
         self.vocab_size = vocab_size
         self.d_model = d_model
         self.num_layers = num_layers
@@ -25,7 +26,7 @@ class Transformer(tf.keras.Model):
         self.dropout = dropout
 
         self.encoder = Encoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
-        self.decoder = Decoder()
+        self.decoder = Decoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
 
     def call(self, inputs):
         inputs = embedding(inputs=inputs, vocab_size=self.vocab_size, d_model=self.d_model)
