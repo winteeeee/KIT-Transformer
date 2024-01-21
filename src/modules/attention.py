@@ -31,6 +31,19 @@ def create_pad_mask(inputs):
     return np.where(inputs == 0, 1, 0)
 
 
+def create_look_ahead_mask(inputs):
+    """
+    룩 어헤드 마스크 생성.
+    디코더의 첫 번째 서브층에서 미래 단어를 참조하지 못하도록 해당 위치를 1로 표기
+    :param inputs:
+    :return:
+    """
+    inputs_len = inputs.shape[1]
+    # tensorflow의 삼각행렬 생성 함수
+    look_ahead_mask = tf.linalg.band_part(tf.ones((inputs_len, inputs_len)), 0, -1)
+    pad_mask = create_pad_mask(inputs)
+    return tf.maximum(look_ahead_mask, pad_mask)
+
 def _split_matrix(matrix, num_heads, size_per_head, batch_size):
     """
     행렬을 병렬 연산 수 만큼 스플릿
