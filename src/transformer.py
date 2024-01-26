@@ -31,7 +31,6 @@ class Transformer(tf.keras.Model):
         self.decoder = Decoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
 
     def call(self, inputs):
-        # (batch_size, seq_length)일 때 mask에 넣어야 함
         encoder_inputs = inputs[0]
         decoder_inputs = inputs[1]
         encoder_mask = create_pad_mask(encoder_inputs)
