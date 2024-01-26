@@ -13,12 +13,13 @@ def _scaled_dot_product_attention(query, key, value, mask):
     :param mask: 마스킹 행렬
     :return: softmax(QK^T / √d_k)V
     """
-    key_t = np.transpose(key)
-    d_k = key_t.shape[0]
-    attention_score_mat = np.matmul(query, key_t) / np.sqrt(d_k)
+
+    d_k = tf.cast(key.shape[-1], tf.float32)
+    attention_score_mat = tf.matmul(query, key, transpose_b=True) / tf.sqrt(d_k)
     if mask is not None:
         attention_score_mat += mask * -1e9
-    return np.matmul(tf.nn.softmax(attention_score_mat), value)
+
+    return tf.matmul(tf.nn.softmax(attention_score_mat), value)
 
 
 def create_pad_mask(inputs):
@@ -28,7 +29,8 @@ def create_pad_mask(inputs):
     :param inputs: 입력 벡터
     :return: 패딩 마스크
     """
-    return np.where(inputs == 0, 1, 0)
+    pad_mask = tf.cast(tf.where(tf.equal(inputs, 0), 1, 0), tf.float32)
+    return pad_mask[:, tf.newaxis, tf.newaxis, :]
 
 
 def create_look_ahead_mask(inputs):
@@ -43,6 +45,7 @@ def create_look_ahead_mask(inputs):
     look_ahead_mask = tf.linalg.band_part(tf.ones((inputs_len, inputs_len)), 0, -1)
     pad_mask = create_pad_mask(inputs)
     return tf.maximum(look_ahead_mask, pad_mask)
+
 
 def _split_matrix(matrix, num_heads, size_per_head, batch_size):
     """

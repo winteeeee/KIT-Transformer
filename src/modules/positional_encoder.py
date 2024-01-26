@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 from tensorflow.keras.layers import Dropout
 
@@ -34,7 +35,7 @@ def _get_positional_encode_matrix(position, d_model):
         for i, element in enumerate(row_vector):
             row_vector[i] = _get_value(pos, i, d_model)
 
-    return positional_encode_vector
+    return positional_encode_vector[tf.newaxis, :]
 
 
 def positional_encoding(inputs, vocab_size, d_model, dropout):

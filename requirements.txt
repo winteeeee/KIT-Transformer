@@ -1,1 +1,2 @@
 tensorflow==2.15.0
+jupyter==1.0.0

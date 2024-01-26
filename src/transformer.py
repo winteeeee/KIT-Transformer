@@ -2,6 +2,7 @@ from modules.encoder import Encoder
 from modules.decoder import Decoder
 from modules.embedding import embedding
 from modules.positional_encoder import positional_encoding
+from modules.attention import create_pad_mask, create_look_ahead_mask
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense
@@ -30,14 +31,20 @@ class Transformer(tf.keras.Model):
         self.decoder = Decoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
 
     def call(self, inputs):
-        encoder_inputs, decoder_inputs = inputs
+        # (batch_size, seq_length)일 때 mask에 넣어야 함
+        encoder_inputs = inputs[0]
+        decoder_inputs = inputs[1]
+        encoder_mask = create_pad_mask(encoder_inputs)
+        decoder_pad_mask = create_pad_mask(decoder_inputs)
+        decoder_look_ahead_mask = create_look_ahead_mask(decoder_inputs)
+
         encoder_inputs = embedding(inputs=encoder_inputs, vocab_size=self.vocab_size, d_model=self.d_model)
         encoder_inputs = positional_encoding(inputs=encoder_inputs,
                                              vocab_size=self.vocab_size,
                                              d_model=self.d_model,
                                              dropout=self.dropout)
 
-        encoder_outputs = self.encoder.encode(inputs=encoder_inputs)
+        encoder_outputs = self.encoder.encode(inputs=encoder_inputs, pad_mask=encoder_mask)
         for i in range(self.num_layers - 1):
             encoder_outputs = self.encoder.encode(inputs=encoder_outputs)
 
@@ -47,7 +54,8 @@ class Transformer(tf.keras.Model):
                                              d_model=self.d_model,
                                              dropout=self.dropout)
 
-        decoder_outputs = self.decoder.decode(inputs=decoder_inputs, encoder_outputs=encoder_outputs)
+        decoder_outputs = self.decoder.decode(inputs=decoder_inputs, encoder_outputs=encoder_outputs,
+                                              pad_mask=decoder_pad_mask, look_ahead_mask=decoder_look_ahead_mask)
         for i in range(self.num_layers - 1):
             decoder_outputs = self.decoder.decode(inputs=decoder_outputs, encoder_outputs=encoder_outputs)
 
