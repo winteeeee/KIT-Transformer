@@ -1,2 +1,5 @@
 tensorflow==2.15.0
+tensorflow-datasets==4.9.4
 jupyter==1.0.0
+matplotlib==3.8.2
+pandas==2.2.0
