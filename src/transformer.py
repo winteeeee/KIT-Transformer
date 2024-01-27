@@ -39,7 +39,7 @@ class Transformer(tf.keras.Model):
 
         encoder_inputs = embedding(inputs=encoder_inputs, vocab_size=self.vocab_size, d_model=self.d_model)
         encoder_inputs = positional_encoding(inputs=encoder_inputs,
-                                             vocab_size=self.vocab_size,
+                                             position=encoder_inputs[1],
                                              d_model=self.d_model,
                                              dropout=self.dropout)
 
@@ -49,7 +49,7 @@ class Transformer(tf.keras.Model):
 
         decoder_inputs = embedding(inputs=decoder_inputs, vocab_size=self.vocab_size, d_model=self.d_model)
         decoder_inputs = positional_encoding(inputs=decoder_inputs,
-                                             vocab_size=self.vocab_size,
+                                             position=decoder_inputs[1],
                                              d_model=self.d_model,
                                              dropout=self.dropout)
 
