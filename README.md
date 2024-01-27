@@ -192,7 +192,7 @@ k = n인 경우에도 분리형 컨볼루션의 복잡도는 셀프-어텐션층
 β1 = 0.9, β2 = 0.98, ϵ = 10−9으로 Adam 옵티마이저를 사용했습니다.
 학습률은 다음 공식에 따라 학습 과정 중 달라집니다.
 ```
-lrate = d^-0.5_model * min(step_num^-0.5, step_num * warmup_steps^-1.5)
+lrate = d_model^-0.5 * min(step_num^-0.5, step_num * warmup_steps^-1.5)
 ```
 이 수식은 첫 번째 warmup_step 까지는 선형적으로 학습률을 올리다가 이후 스텝 수의 역제곱근에 비례하여 감소시킵니다.
 warmup_steps는 4000을 사용했습니다.
