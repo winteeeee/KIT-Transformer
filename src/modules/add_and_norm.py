@@ -1,6 +1,3 @@
-from tensorflow.keras.layers import LayerNormalization, Dropout
-
-
 def _residual_connect(inputs, outputs):
     """
     서브층의 입력과 출력을 더하여 x + Sublayer(x)를 구현
@@ -13,26 +10,27 @@ def _residual_connect(inputs, outputs):
     return inputs + outputs
 
 
-def _layer_normalize(layer, epsilon=1e-6):
+def _layer_normalize(normalization_layer, layer):
     """
     텐서의 마지막 차원에 대해 평균과 분산을 구하여 층을 정규화
     keras의 LayerNormalization() 사용
 
+    :param normalization_layer: LayerNormalization 레이어
     :param layer: 정규화할 층
-    :param epsilon: LayerNormliazation의 하이퍼파라미터. 분모가 0이 되지 않도록 함
     :return: 정규화된 층
     """
-    return LayerNormalization(epsilon=epsilon)(layer)
+    return normalization_layer(layer)
 
 
-def add_and_norm(inputs, outputs, dropout):
+def add_and_norm(dropout_layer, normalization_layer, inputs, outputs):
     """
     트랜스포머의 Add & Norm층 구현
 
+    :param dropout_layer: Dropout 레이어
+    :param normalization_layer: LayerNormalization 레이어
     :param inputs: 하위층 입력
     :param outputs: 하위층 출력
-    :param dropout: Add & Norm 적용전 수행할 Dropout의 Rate
     :return: Add & Norm 적용 결과
     """
-    outputs = Dropout(rate=dropout)(outputs)
-    return _layer_normalize(_residual_connect(inputs, outputs))
+    outputs = dropout_layer(outputs)
+    return _layer_normalize(normalization_layer, _residual_connect(inputs, outputs))

@@ -1,6 +1,4 @@
-import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Dense
 
 
 def _scaled_dot_product_attention(query, key, value, mask):
@@ -65,10 +63,11 @@ def _split_matrix(matrix, num_heads, size_per_head, batch_size):
     return tf.transpose(matrix, perm=[0, 2, 1, 3])
 
 
-def multi_head_attention(query, key, value, d_model, num_heads, mask=None):
+def multi_head_attention(dense_layer, query, key, value, d_model, num_heads, mask=None):
     """
     멀티-헤드 어텐션 수행
 
+    :param dense_layer: Dense(d_model)
     :param query: 쿼리 행렬
     :param key: 키 행렬
     :param value: 값 행렬
@@ -78,12 +77,12 @@ def multi_head_attention(query, key, value, d_model, num_heads, mask=None):
     :return: 멀티-헤드 어텐션 적용 행렬
     """
     size_per_head = d_model // num_heads
-    batch_size = query.shape[0]
+    batch_size = tf.shape(query)[0]
 
-    w_q = Dense(d_model)
-    w_k = Dense(d_model)
-    w_v = Dense(d_model)
-    w_o = Dense(d_model)
+    w_q = dense_layer
+    w_k = dense_layer
+    w_v = dense_layer
+    w_o = dense_layer
 
     query = _split_matrix(matrix=w_q(query), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
     key = _split_matrix(matrix=w_k(key), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
