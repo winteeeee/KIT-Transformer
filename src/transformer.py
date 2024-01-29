@@ -5,6 +5,7 @@ from modules.positional_encoder import positional_encoding
 from modules.attention import create_pad_mask, create_look_ahead_mask
 
 import tensorflow as tf
+from tensorflow.keras.layers import Dense, Dropout, Embedding
 
 
 class Transformer(tf.keras.Model):
@@ -28,12 +29,10 @@ class Transformer(tf.keras.Model):
         self.dropout_rate = dropout
 
         # 서브층에서 사용될 레이어
-        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
-        self.dropout = tf.keras.layers.Dropout(self.dropout_rate)
-        self.d_model_dense = tf.keras.layers.Dense(d_model)
-        self.vocab_size_dense = tf.keras.layers.Dense(vocab_size)
-        self.d_ff_dense = tf.keras.layers.Dense(d_ff, activation='relu')
-        self.normalization = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.embedding = Embedding(vocab_size, d_model)
+        self.encoder_dropout = Dropout(self.dropout_rate)
+        self.decoder_dropout = Dropout(self.dropout_rate)
+        self.vocab_size_dense = Dense(self.vocab_size)
 
         # 인코더와 디코더
         self.encoder = Encoder(d_model=d_model, num_heads=num_heads, dropout=dropout, d_ff=d_ff)
@@ -63,24 +62,14 @@ class Transformer(tf.keras.Model):
         encoder_inputs = embedding(embedding_layer=self.embedding,
                                    inputs=encoder_inputs,
                                    d_model=self.d_model)
-        encoder_inputs = positional_encoding(dropout_layer=self.dropout,
+        encoder_inputs = positional_encoding(dropout_layer=self.encoder_dropout,
                                              inputs=encoder_inputs,
                                              position=encoder_position,
                                              d_model=self.d_model)
 
-        encoder_outputs = self.encoder.encode(d_model_dense=self.d_model_dense,
-                                              d_ff_dense=self.d_ff_dense,
-                                              dropout_layer=self.dropout,
-                                              normalization_layer=self.normalization,
-                                              inputs=encoder_inputs,
-                                              pad_mask=encoder_mask)
+        encoder_outputs = self.encoder.encode(inputs=encoder_inputs, pad_mask=encoder_mask)
         for i in range(self.num_layers - 1):
-            encoder_outputs = self.encoder.encode(d_model_dense=self.d_model_dense,
-                                                  d_ff_dense=self.d_ff_dense,
-                                                  dropout_layer=self.dropout,
-                                                  normalization_layer=self.normalization,
-                                                  inputs=encoder_outputs,
-                                                  pad_mask=encoder_mask)
+            encoder_outputs = self.encoder.encode(inputs=encoder_outputs, pad_mask=encoder_mask)
 
         return encoder_outputs
 
@@ -88,23 +77,15 @@ class Transformer(tf.keras.Model):
         decoder_inputs = embedding(embedding_layer=self.embedding,
                                    inputs=decoder_inputs,
                                    d_model=self.d_model)
-        decoder_inputs = positional_encoding(dropout_layer=self.dropout,
+        decoder_inputs = positional_encoding(dropout_layer=self.decoder_dropout,
                                              inputs=decoder_inputs,
                                              position=decoder_position,
                                              d_model=self.d_model)
 
-        decoder_outputs = self.decoder.decode(d_model_dense=self.d_model_dense,
-                                              d_ff_dense=self.d_ff_dense,
-                                              dropout_layer=self.dropout,
-                                              normalization_layer=self.normalization,
-                                              inputs=decoder_inputs, encoder_outputs=encoder_outputs,
+        decoder_outputs = self.decoder.decode(inputs=decoder_inputs, encoder_outputs=encoder_outputs,
                                               pad_mask=decoder_pad_mask, look_ahead_mask=decoder_look_ahead_mask)
         for i in range(self.num_layers - 1):
-            decoder_outputs = self.decoder.decode(d_model_dense=self.d_model_dense,
-                                                  d_ff_dense=self.d_ff_dense,
-                                                  dropout_layer=self.dropout,
-                                                  normalization_layer=self.normalization,
-                                                  inputs=decoder_outputs, encoder_outputs=encoder_outputs,
+            decoder_outputs = self.decoder.decode(inputs=decoder_outputs, encoder_outputs=encoder_outputs,
                                                   pad_mask=decoder_pad_mask, look_ahead_mask=decoder_look_ahead_mask)
 
         return decoder_outputs

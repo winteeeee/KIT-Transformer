@@ -63,11 +63,14 @@ def _split_matrix(matrix, num_heads, size_per_head, batch_size):
     return tf.transpose(matrix, perm=[0, 2, 1, 3])
 
 
-def multi_head_attention(dense_layer, query, key, value, d_model, num_heads, mask=None):
+def multi_head_attention(w_q, w_k, w_v, w_o, query, key, value, d_model, num_heads, mask=None):
     """
     멀티-헤드 어텐션 수행
 
-    :param dense_layer: Dense(d_model)
+    :param w_q: Dense(d_model)
+    :param w_k: Dense(d_model)
+    :param w_v: Dense(d_model)
+    :param w_o: Dense(d_model)
     :param query: 쿼리 행렬
     :param key: 키 행렬
     :param value: 값 행렬
@@ -78,11 +81,6 @@ def multi_head_attention(dense_layer, query, key, value, d_model, num_heads, mas
     """
     size_per_head = d_model // num_heads
     batch_size = tf.shape(query)[0]
-
-    w_q = dense_layer
-    w_k = dense_layer
-    w_v = dense_layer
-    w_o = dense_layer
 
     query = _split_matrix(matrix=w_q(query), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
     key = _split_matrix(matrix=w_k(key), num_heads=num_heads, size_per_head=size_per_head, batch_size=batch_size)
