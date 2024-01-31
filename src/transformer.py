@@ -15,7 +15,7 @@ class Transformer(tf.keras.Model):
         :param d_model: 인코더와 디코더의 입출력 크기 및 임베딩 차원을 설정. 기본값 512
         :param num_layers: 인코더와 디코더의 층 수. 기본값 6
         :param num_heads: 병렬 어텐션 개수. 기본값 8
-        :param dropout: Dropout층의 Rate
+        :param dropout: Dropout층의 Rate. 기본값 0.1
         :param d_ff: 내부 피드 포워드 신경망의 은닉층 크기. 기본값 2048
         """
         super(Transformer, self).__init__()
@@ -48,15 +48,14 @@ class Transformer(tf.keras.Model):
         decoder_position = decoder_inputs.shape[1]
         # 마스크 생성
         encoder_mask = create_pad_mask(encoder_inputs)
-        decoder_pad_mask = create_pad_mask(decoder_inputs)
+        decoder_pad_mask = create_pad_mask(encoder_inputs)
         decoder_look_ahead_mask = create_look_ahead_mask(decoder_inputs)
 
         encoder_outputs = self._encoder_calc(encoder_inputs, encoder_position, encoder_mask)
         decoder_outputs = self._decoder_calc(decoder_inputs, decoder_position, encoder_outputs,
                                              decoder_pad_mask, decoder_look_ahead_mask)
 
-        outputs = self.vocab_size_dense(decoder_outputs)
-        return tf.nn.softmax(outputs)
+        return self.vocab_size_dense(decoder_outputs)
 
     def _encoder_calc(self, encoder_inputs, encoder_position, encoder_mask):
         encoder_inputs = embedding(embedding_layer=self.embedding,

@@ -59,7 +59,8 @@ class Decoder:
                                  normalization_layer=self.norm2,
                                  inputs=sublayer1, outputs=sublayer2)
 
-        sublayer3 = position_wise_ffnn(d_ff_dense=self.d_ff_dense, d_model_dense=self.d_model_dense, attention=sublayer2)
+        sublayer3 = position_wise_ffnn(d_ff_dense=self.d_ff_dense, d_model_dense=self.d_model_dense,
+                                       attention=sublayer2)
         sublayer3 = add_and_norm(dropout_layer=self.dropout3,
                                  normalization_layer=self.norm3,
                                  inputs=sublayer2, outputs=sublayer3)

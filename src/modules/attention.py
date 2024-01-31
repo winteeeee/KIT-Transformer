@@ -38,7 +38,7 @@ def create_look_ahead_mask(inputs):
     :param inputs:
     :return:
     """
-    inputs_len = inputs.shape[1]
+    inputs_len = tf.shape(inputs)[1]
     # tensorflow의 삼각행렬 생성 함수
     look_ahead_mask = tf.linalg.band_part(tf.ones((inputs_len, inputs_len)), 0, -1)
     pad_mask = create_pad_mask(inputs)

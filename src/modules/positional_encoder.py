@@ -29,6 +29,9 @@ def _get_positional_encode_matrix(position, d_model):
     :param d_model: 모델의 하이퍼파라미터
     :return: 포지셔널 인코딩 행렬
     """
+    if position is None:
+        return None
+
     positional_encode_vector = np.zeros((position, d_model))
 
     for pos, row_vector in enumerate(positional_encode_vector):
@@ -49,5 +52,8 @@ def positional_encoding(dropout_layer, inputs, position, d_model):
     :param d_model: 모델의 하이퍼파라미터
     :return: 포지셔널 인코딩 행렬이 더해진 임베딩 행렬
     """
-    inputs += _get_positional_encode_matrix(position, d_model)
+    positional_encode_mat = _get_positional_encode_matrix(position, d_model)
+    if positional_encode_mat is not None:
+        inputs += positional_encode_mat
+
     return dropout_layer(inputs)
