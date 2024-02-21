@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-from tensorflow.keras.layers import Dropout
 
 
 def _get_value(pos, i, d_model):

@@ -1,6 +1,3 @@
-import tensorflow as tf
-
-
 def position_wise_ffnn(d_ff_dense, d_model_dense, attention):
     """
     행렬에 비선형성 추가, 다양한 특징 학습, 모델 용량 증가 등 다양한 역할 수행
